@@ -1,128 +1,106 @@
+#!/bin/bash
 if [ $# -eq 0 ]; then
     echo "Error: No arguments provided. Use '--help' for usage information."
 fi
 
+#------------------------------------------------------
 if [ "$1" = "time" ]; then
-    echo "-----------start------------" 
-    if [ "$2" = "-i" ]; then
-        grep -i "$3" example.log | awk -F'[][]' '{print $2}' | awk '{print $2}' | cut -d: -f1-2 | uniq -c |
-        while read count time; do
-            echo ----------------
-            echo "$time|$count $3."
-        done
-    else
-        grep "$2" example.log | awk -F'[][]' '{print $2}' | awk '{print $2}' | cut -d: -f1-2 | uniq -c |
-        while read count time; do
-            echo ----------------
-            echo "$time|$count $2."
-        done 
-    echo "------------end------------" 
+    if [ "$2" = "target" ]; then
+        echo "-----------start------------" 
+        if [ "$3" = "-i" ]; then
+            echo "target:" $4 wich -i.
+            grep -i "$4" $5 | awk -F' ' '{print $2,$3}' | cut -d: -f1-3 | sed 's/:[0-9]*\]//' | sort | uniq -c |
+            while read count time type_info; do
+                echo ----------------
+                echo "$time ~-~ $count $type_info."
+            done
+        else
+            echo "target:" $3.
+            cat $4 | awk '{print $1,$2,$3}' | grep "$3" | awk -F' ' '{print $2,$3}' | cut -d: -f1-3 | sed 's/:[0-9]*\]//' | sort | uniq -c |
+            while read count time type_info; do
+                echo ----------------
+                echo "$time ~-~ $count $type_info."
+            done 
+        echo "------------end------------" 
+        fi
+    else 
+        echo "-----------start------------" 
+        cat $2 | awk -F' ' '{print $2,$3}' | cut -d: -f1-3 | sed 's/:[0-9]*\]//' | sort | uniq -c |
+            while read count time type_info; do
+                echo ----------------
+                echo "$time ~-~ $count $type_info"
+            done
+        echo "------------end------------" 
     fi
 fi
+
+#------------------------------------------------------
+
 
 if [ "$1" = "count" ]; then
     if [ "$2" = "-i" ]; then
         echo "-----------start------------"
-        Count=$(grep -c -i $3 example.log)
-        echo "Find:"$Count $3"."
+        Count=$(cat $4 | awk '{print $1,$2,$3}' | grep -c -i "$3")
+        echo "Find:"$Count [$3] wich ignor_registr.
         echo "------------end------------"
     else
         echo "-----------start------------"
-        Count=$(grep -c $2 example.log)
-        echo "Find:"$Count $2"."
+        Count=$(cat $3 | awk '{print $1,$2,$3}' | grep -c "$2")
+        echo "Find:"$Count [$2].
         echo "------------end------------"
     fi
 fi
 
+#------------------------------------------------------
 
-if [ "$1" = "all" ]; then
+
+if [ "$1" = "info" ]; then
     if [ "$2" = "-i" ]; then
         echo "-----------start------------" 
-        grep -i $3 example.log
+        grep -i $3 $4
         echo "------------end------------"
     else
         echo "-----------start------------" 
-        grep  $2 example.log
+        grep  $2 $3
         echo "------------end------------"
     fi
 fi
 
-
-if [ "$1" = "check" ]; then
-
-
-    if [ "$2" = "uniq" ]; then
-        echo "=== Unique error types ==="
-        grep "$3" example.log | awk -F'[][]' '{print $3}' | sort | uniq -c | while read count error_type; do
-            echo "Count: $count - Type: $error_type"
-        done
-    
-        echo "=== Real-time monitoring ==="
-        tail -f example.log | grep --line-buffered "$3" | while read -r line; do
-            line_minute=$(echo "$line" | awk -F'[][]' '{print $2}' | cut -d: -f1-2)
-            echo "🆕 NEW: [$line_minute] - $line"
-        done
-fi
-
-
-    if [ "$2" = "target" ]; then
-        echo "=== Existing matches ==="
-        grep "$3" example.log | while read -r line; do
-            line_minute=$(echo "$line" | awk -F'[][]' '{print $2}' | cut -d: -f1-2)
-            echo "[$line_minute] - $line"
-        
-        done
-        echo "=== Real-time monitoring ==="
-        tail -f example.log | grep --line-buffered "$3" | while read -r line; do
-            line_minute=$(echo "$line" | awk -F'[][]' '{print $2}' | cut -d: -f1-2)
-            echo "🆕 NEW: [$line_minute] - $line"
-        done
-    else
-        echo "=== Existing matches ==="
-        cat example.log | while read -r line; do
-            line_minute=$(echo "$line" | awk -F'[][]' '{print $2}' | cut -d: -f1-2)
-            echo "[$line_minute] - $line"
-        
-        done
-        echo "=== Real-time monitoring ==="
-        tail -f example.log | while read -r line; do
-            line_minute=$(echo "$line" | awk -F'[][]' '{print $2}' | cut -d: -f1-2)
-            echo "🆕 NEW: [$line_minute] - $line"
-        done
-    fi
-fi  
+#------------------------------------------------------
 
 if [ "$1" = "--help" ]; then
-    echo "----------------------------------------------------"
-    echo "Usage: ./log_inspector.sh [mode] [options] <keyword>"
+    echo "===================================================="
+    echo "              LOG INSPECTOR - Help Manual"
+    echo "===================================================="
     echo ""
-    echo "Modes:"
-    echo "  time        Show error distribution over time"
-    echo "  count       Show total count of matches"
-    echo "  all         Show all matching lines"
-    echo "  check       Real-time log monitoring with sub-modes"
-    echo "  --help      Show this help message"
+    echo "USAGE: ./log_inspector.sh [MODE] [OPTIONS] [ARGUMENTS]"
     echo ""
-    echo "Check Sub-modes:"
-    echo "  uniq        Show unique error types with counts"
-    echo "  target      Monitor specific keyword in real-time"
-    echo "  (no arg)    Monitor entire log file in real-time"
+    echo "MODES:"
+    echo "  time [target <keyword>] <file>    - Time distribution analysis"
+    echo "  count [-i] <keyword> <file>       - Count matching lines" 
+    echo "  info [-i] <keyword> <file>        - Display all matching lines"
+    echo "  --help                            - Show this help"
     echo ""
-    echo "Options:"
-    echo "  -i          Ignore case (case-insensitive search)"
+    echo "OPTIONS:"
+    echo "  -i          Case-insensitive search"
+    echo "  target      Filter for specific keyword (time mode only)"
     echo ""
-    echo "Examples:"
-    echo "  ./log_inspector.sh time ERROR"
-    echo "  ./log_inspector.sh count -i error"
-    echo "  ./log_inspector.sh all -i warning"
-    echo "  ./log_inspector.sh check uniq ERROR    # Unique errors"
-    echo "  ./log_inspector.sh check target ERROR  # Real-time monitoring"
-    echo "  ./log_inspector.sh check              # Monitor entire log"
+    echo "EXAMPLES:"
+    echo "  Time Analysis:"
+    echo "    ./log_inspector.sh time example.log              # Overall time distribution"
+    echo "    ./log_inspector.sh time target ERROR example.log # ERROR time distribution"
     echo ""
-    echo "Check Mode Features:"
-    echo "  • Real-time log monitoring"
-    echo "  • Unique error type analysis"
-    echo "  • Timestamp-based grouping"
-    echo "  • Live updates with new entries"
-    echo "----------------------------------------------------"
+    echo "  Counting:"
+    echo "    ./log_inspector.sh count ERROR example.log       # Case-sensitive"
+    echo "    ./log_inspector.sh count -i error example.log    # Case-insensitive"
+    echo ""
+    echo "  Information:"
+    echo "    ./log_inspector.sh info WARNING example.log      # Show all WARNING lines"
+    echo "    ./log_inspector.sh info -i timeout example.log   # Case-insensitive search"
+    echo ""
+    echo "Notes:"
+    echo "  - Log files should contain timestamps for time analysis"
+    echo "  - Use quotes for keywords with spaces: \"connection failed\""
+    echo "  - File paths can be relative or absolute"
+    echo "===================================================="
 fi
