@@ -1,3 +1,4 @@
+#!/bin/bash
 if [ $# -eq 0 ]; then
     echo "Error: No arguments provided. Use '--help' for usage information."
 fi
@@ -67,70 +68,39 @@ fi
 
 #------------------------------------------------------
 
-
-if [ "$1" = "check" ]; then
-
-
-    if [ "$2" = "uniq" ]; then
-        echo "=== Unique error types ==="
-        grep "$3" example.log | awk -F'[][]' '{print $3}' | sort | uniq -c | while read count error_type; do
-            echo "Count: $count - Type: $error_type"
-        done
-    
-        echo "=== Real-time monitoring ==="
-        tail -f example.log | grep --line-buffered "$3" | while read -r line; do
-            line_minute=$(echo "$line" | awk -F'[][]' '{print $2}' | cut -d: -f1-2)
-            echo "🆕 NEW: [$line_minute] - $line"
-        done
-    fi
-
-
-    if [ "$2" = "target" ]; then
-        echo "=== Existing matches ==="
-        grep "$3" example.log | while read -r line; do
-            line_minute=$(echo "$line" | awk -F'[][]' '{print $2}' | cut -d: -f1-2)
-            echo "[$line_minute] - $line"
-        
-        done
-        echo "=== Real-time monitoring ==="
-        tail -f example.log | grep --line-buffered "$3" | while read -r line; do
-            line_minute=$(echo "$line" | awk -F'[][]' '{print $2}' | cut -d: -f1-2)
-            echo "🆕 NEW: [$line_minute] - $line"
-        done
-    else
-        echo "=== Existing matches ==="
-        cat example.log | while read -r line; do
-            line_minute=$(echo "$line" | awk -F'[][]' '{print $2}' | cut -d: -f1-2)
-            echo "[$line_minute] - $line"
-        
-        done
-        echo "=== Real-time monitoring ==="
-        tail -f example.log | while read -r line; do
-            line_minute=$(echo "$line" | awk -F'[][]' '{print $2}' | cut -d: -f1-2)
-            echo "🆕 NEW: [$line_minute] - $line"
-        done
-    fi
-fi  
-
 if [ "$1" = "--help" ]; then
-    echo "----------------------------------------------------"
-    echo "Usage: ./log_inspector.sh [mode] [options] [arguments]"
+    echo "===================================================="
+    echo "              LOG INSPECTOR - Help Manual"
+    echo "===================================================="
     echo ""
-    echo "Modes:"
-    echo "  time [target <keyword>] [-i] <file>    - Time distribution"
-    echo "  count [-i] <keyword> <file>            - Match counting"
-    echo "  info [-i] <keyword> <file>             - Show all matches"
-    echo "  check [uniq|target] <keyword>          - Real-time monitoring"
-    echo "  --help                                 - This message"
+    echo "USAGE: ./log_inspector.sh [MODE] [OPTIONS] [ARGUMENTS]"
     echo ""
-    echo "Options:"
+    echo "MODES:"
+    echo "  time [target <keyword>] <file>    - Time distribution analysis"
+    echo "  count [-i] <keyword> <file>       - Count matching lines" 
+    echo "  info [-i] <keyword> <file>        - Display all matching lines"
+    echo "  --help                            - Show this help"
+    echo ""
+    echo "OPTIONS:"
     echo "  -i          Case-insensitive search"
+    echo "  target      Filter for specific keyword (time mode only)"
     echo ""
-    echo "Examples:"
-    echo "  ./log_inspector.sh time example.log"
-    echo "  ./log_inspector.sh time target ERROR example.log"
-    echo "  ./log_inspector.sh count -i error example.log"
-    echo "  ./log_inspector.sh info WARNING example.log"
-    echo "  ./log_inspector.sh check target ERROR"
-    echo "----------------------------------------------------"
+    echo "EXAMPLES:"
+    echo "  Time Analysis:"
+    echo "    ./log_inspector.sh time example.log              # Overall time distribution"
+    echo "    ./log_inspector.sh time target ERROR example.log # ERROR time distribution"
+    echo ""
+    echo "  Counting:"
+    echo "    ./log_inspector.sh count ERROR example.log       # Case-sensitive"
+    echo "    ./log_inspector.sh count -i error example.log    # Case-insensitive"
+    echo ""
+    echo "  Information:"
+    echo "    ./log_inspector.sh info WARNING example.log      # Show all WARNING lines"
+    echo "    ./log_inspector.sh info -i timeout example.log   # Case-insensitive search"
+    echo ""
+    echo "Notes:"
+    echo "  - Log files should contain timestamps for time analysis"
+    echo "  - Use quotes for keywords with spaces: \"connection failed\""
+    echo "  - File paths can be relative or absolute"
+    echo "===================================================="
 fi
